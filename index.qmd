@@ -1,0 +1,137 @@
+---
+title: "EFECTO DEL ÁCIDO GIBERÉLICO EN LA GERMINACIÓN DE SEMILLAS DE TRES GENOTIPOS NATIVOS DE ARÁNDANO DEL GÉNERO Vaccinium."
+author: "Rivera Y_Colunche JJ_Huaman M_ Vasquez E_Maicelo M_Villla J"
+format: html
+---
+
+#pasos para analisis de datos
+
+1.creacion de mi diseño experimental-modelo estadistico
+2.coleccion de dtos
+3.importar y verificar los factores
+4.analisis de varianza
+5.comparacion de medias
+6.Graficos # librerias
+
+# librerias 
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(lme4)
+library(emmeans)
+```
+
+# Cargar base de datos 
+
+https://docs.google.com/spreadsheets/d/1o4mtAkI1lBgoUzqDT-e7cIhIwh_K5m6CoxAx0ETvwXU/edit?gid=1955940309#gid=1955940309
+
+```{r}
+url <- "https://docs.google.com/spreadsheets/d/1o4mtAkI1lBgoUzqDT-e7cIhIwh_K5m6CoxAx0ETvwXU/edit?gid=0#gid=0"
+
+gs <- url %>%
+  as_sheets_id()
+
+fb <- gs %>% 
+  range_read("fb") %>% 
+  mutate(across(1:block, ~as.factor(.)))
+
+str(fb)
+
+
+
+
+```
+
+# Modelo estadistico 
+$$  AG3_{germination} = \mu + block + genotype + AG3 + genotype*AG3 + e  $$
+
+
+# Análisis de Varianza
+
+```{r}
+md <- lmer(formula = germination ~ 0 + (1|block) + genotype*AG3
+           , data = fb)
+anova(md)
+
+library(car)
+Anova(md)
+```
+
+
+# CON Chat Gpt
+## cargar librerias
+
+```{r}
+library(emmeans)
+library(multcomp)
+library(multcompView)
+library(ggplot2)
+
+```
+
+## Comparación de medias con letras (genotype*AG3)
+
+```{r}
+# Medias marginales de la interacción
+em_int <- emmeans(md, ~ genotype * AG3)
+
+# Letras de significancia (Tukey)
+cld_int <- cld(em_int,
+               Letters = letters,
+               adjust = "tukey") %>%
+  arrange(genotype, AG3)
+
+cld_int
+
+```
+
+## Gráfico de barras con letras y error bars
+
+```{r}
+ggplot(cld_int, aes(x = genotype,
+                    y = emmean,
+                    fill = AG3)) +
+  geom_col(position = position_dodge(width = 0.8)) +
+  geom_errorbar(aes(ymin = lower.CL, ymax = upper.CL),
+                width = 0.2,
+                position = position_dodge(width = 0.8)) +
+  geom_text(aes(label = .group),
+            position = position_dodge(width = 0.8),
+            vjust = -0.8,
+            size = 4) +
+  labs(title = "Comparación de medias: Genotype × AG3",
+       x = "Genotipos",
+       y = "Promedio de Germinación (%)",
+       fill = "Dosis de AG3 (ppm)") +
+  theme_minimal(base_size = 14) 
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
